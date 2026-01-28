@@ -7,6 +7,7 @@ import {
 import {body, query} from 'express-validator';
 import { handleValidationErrors } from '../middlewares/errorHandler.ts';
 import cors from 'cors';
+import config from "../config/config.ts";
 
 const router = Router();
 
@@ -15,7 +16,7 @@ router.get(
     query('id').isString().notEmpty(),
   ],
   cors({
-    origin: 'https://www.speedscope.app',
+    origin: config.allowedOrigin,
   }),
   handleValidationErrors,
   getProfile
@@ -35,7 +36,7 @@ router.post('/log', [
 router.get(
     '/aggregate',
     cors({
-      origin: 'https://www.speedscope.app',
+      origin: config.allowedOrigin,
     }),
     [
       query('type').exists().isIn(['hourly', 'daily'])

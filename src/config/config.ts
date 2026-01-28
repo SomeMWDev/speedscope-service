@@ -7,6 +7,7 @@ interface Config {
   nodeEnv: string;
   logToken: string;
   requestSizeLimit: string;
+  allowedOrigin: string;
 }
 
 const logToken = process.env.LOG_TOKEN;
@@ -20,6 +21,7 @@ const config: Config = {
   logToken: logToken,
   // during testing, some requests were up to 63mb large
   requestSizeLimit: process.env.REQUEST_SIZE_LIMIT || '100mb',
+  allowedOrigin: process.env.ALLOWED_ORIGIN || 'https://www.speedscope.app',
 };
 
 export default config;
