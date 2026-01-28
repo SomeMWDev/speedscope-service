@@ -80,7 +80,7 @@ export const getProfile = async (
       return res.status(404).json({ error: 'Profile not found' });
     }
 
-    res.status(200).json(profile.speedscopeData);
+    res.status(200).json(JSON.parse(profile.speedscopeData));
   } catch (error) {
     next(error);
   }
@@ -97,7 +97,7 @@ export const aggregate = async (
     if (!aggregatedProfile) {
       return res.status(404).json({ error: 'No aggregated profiles found' });
     }
-    res.status(200).json(aggregatedProfile.speedscopeData);
+    res.status(200).json(JSON.parse(aggregatedProfile.speedscopeData));
   } catch (error) {
     next(error);
   }
