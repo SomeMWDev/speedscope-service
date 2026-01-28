@@ -30,9 +30,7 @@ export function aggregateSpeedscopeData(data: string[]): SpeedscopeFile {
 
     for (const [i, sample] of json.profiles[0]!.samples.entries()) {
       const weight = json.profiles[0]!.weights[i]!;
-      const mappedSample = sample
-        .slice(1)
-        .map((s: number) => local2GlobalFrames.get(s));
+      const mappedSample = sample.map((s: number) => local2GlobalFrames.get(s));
       const mappedSampleKey = mappedSample.join(',');
       globalSamples.set(
         mappedSampleKey,
