@@ -20,8 +20,8 @@ export async function insertProfile(profile: Profile): Promise<void> {
           forced,
           speedscope_data,
           parser_report,
-          environment,
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          environment
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
     profile.id,
     profile.timestamp,
@@ -147,7 +147,14 @@ export async function deleteProfilesInTimeRange(
   );
 }
 
+/**
+ * @param profiles Array of profiles to aggregate. Must contain at least one profile.
+ */
 export function aggregateProfiles(profiles: Profile[]): any {
+  if (profiles.length === 0) {
+    throw new Error('No profiles to aggregate!');
+  }
+
   const globalFrames = new Map<string, number>();
   const globalFramesRev: object[] = [];
   const globalSamples = new Map<string, number>();
@@ -163,7 +170,7 @@ export function aggregateProfiles(profiles: Profile[]): any {
         globalFrames.set(frameJson, globalFrames.size);
         globalFramesRev.push(frame);
       }
-      local2GlobalFrames.set(i, globalFrames.get(frameJson));
+      local2GlobalFrames.set(i, globalFrames.get(frameJson)!);
     });
 
     for (const [i, sample] of json.profiles[0].samples.entries()) {
@@ -206,14 +213,14 @@ export function aggregateProfiles(profiles: Profile[]): any {
     const ta = globalSortTuples.get(a[0])!;
     const tb = globalSortTuples.get(b[0])!;
     for (let i = 0; i < Math.min(ta.length, tb.length); i++) {
-      if (ta[i] !== tb[i]) return ta[i] - tb[i];
+      if (ta[i] !== tb[i]) return ta[i]! - tb[i]!;
     }
     return ta.length - tb.length;
   });
 
-  json.profiles[0].samples = tuples.map(([key]) => key.split(',').map(Number));
-  json.profiles[0].weights = tuples.map(([_, weight]) => weight);
-  json.shared.frames = globalFramesRev;
+  json!.profiles[0].samples = tuples.map(([key]) => key.split(',').map(Number));
+  json!.profiles[0].weights = tuples.map(([_, weight]) => weight);
+  json!.shared.frames = globalFramesRev;
 
   return json;
 }

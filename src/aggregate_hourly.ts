@@ -10,6 +10,11 @@ const start = end - 60 * 60 * 1000; // 1 hour ago
 
 const profiles = await getProfilesInTimeRange(start, end);
 
+if (profiles.length === 0) {
+  console.log('No profiles found in the last hour.');
+  process.exit(0);
+}
+
 const aggregatedData = aggregateProfiles(profiles);
 await insertAggregatedProfile(
   start,
