@@ -3,9 +3,9 @@ import {
   aggregate,
   getProfile,
   logProfile,
-} from '../controllers/profileController.js';
+} from '../controllers/profileController.ts';
 import {body, query} from 'express-validator';
-import { handleValidationErrors } from '../middlewares/errorHandler.js';
+import { handleValidationErrors } from '../middlewares/errorHandler.ts';
 
 const router = Router();
 

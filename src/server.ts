@@ -1,7 +1,7 @@
-import app from './app.js';
-import config from './config/config.js';
+import app from './app.ts';
+import config from './config/config.ts';
 import sqlite3 from 'sqlite3';
-import { getDb } from './db/database.js';
+import { getDb } from './db/database.ts';
 
 if (config.nodeEnv === 'development') {
   sqlite3.verbose();

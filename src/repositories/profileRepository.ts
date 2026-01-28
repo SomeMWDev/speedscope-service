@@ -2,8 +2,8 @@ import type {
   AggregatedProfile,
   AggregatedProfileType,
   Profile,
-} from '../models/profile.js';
-import { getDb } from '../db/database.js';
+} from '../models/profile.ts';
+import { getDb } from '../db/database.ts';
 import { gunzipSync, gzipSync } from 'node:zlib';
 
 export async function insertProfile(profile: Profile): Promise<void> {

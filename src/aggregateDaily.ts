@@ -1,7 +1,7 @@
 import {
   aggregateSpeedscopeData, deleteAggregatedProfilesInTimeRange,
   getAggregatedProfilesInTimeRange, insertAggregatedProfile
-} from "./repositories/profileRepository.js";
+} from "./repositories/profileRepository.ts";
 
 const end = Date.now();
 const start = end - 24 * 60 * 60 * 1000; // 1 day ago

@@ -144,9 +144,3 @@ vite.config.ts.timestamp-*
 
 # IntelliJ IDEA
 .idea/
-
-# Typescript build stuff
-src/**/*.js
-src/**/*.js.map
-src/**/*.d.ts
-src/**/*.d.ts.map

@@ -3,7 +3,7 @@ import {
   deleteProfilesInTimeRange,
   getProfilesInTimeRange,
   insertAggregatedProfile,
-} from './repositories/profileRepository.js';
+} from './repositories/profileRepository.ts';
 
 const end = Date.now();
 const start = end - 60 * 60 * 1000; // 1 hour ago
