@@ -1,7 +1,7 @@
 import type {
   AggregatedProfile,
   AggregatedProfileType,
-  Profile,
+  Profile, SpeedscopeFile, SpeedscopeFrame,
 } from '../models/profile.ts';
 import { getDb } from '../db/database.ts';
 import { gunzipSync, gzipSync } from 'node:zlib';
@@ -150,19 +150,19 @@ export async function deleteProfilesInTimeRange(
 /**
  * @param data Array of speedscope data to aggregate. Must contain at least one entry.
  */
-export function aggregateSpeedscopeData(data: string[]): any {
+export function aggregateSpeedscopeData(data: string[]): SpeedscopeFile {
   if (data.length === 0) {
     throw new Error('No data to aggregate!');
   }
 
   const globalFrames = new Map<string, number>();
-  const globalFramesRev: object[] = [];
+  const globalFramesRev: SpeedscopeFrame[] = [];
   const globalSamples = new Map<string, number>();
-  let json = undefined;
+  let json: SpeedscopeFile | undefined;
 
   data.forEach((rawData) => {
-    json = JSON.parse(rawData);
-    const frames: any[] = json.shared.frames;
+    json = JSON.parse(rawData) as SpeedscopeFile;
+    const frames = json.shared.frames;
     const local2GlobalFrames = new Map<number, number>();
     frames.forEach((frame, i) => {
       const frameJson = JSON.stringify(frame);
@@ -173,11 +173,11 @@ export function aggregateSpeedscopeData(data: string[]): any {
       local2GlobalFrames.set(i, globalFrames.get(frameJson)!);
     });
 
-    for (const [i, sample] of json.profiles[0].samples.entries()) {
-      const weight = json.profiles[0].weights[i];
+    for (const [i, sample] of json.profiles[0]!.samples.entries()) {
+      const weight = json.profiles[0]!.weights[i]!;
       const mappedSample = sample
         .slice(1)
-        .map((s: any) => local2GlobalFrames.get(s));
+        .map((s: number) => local2GlobalFrames.get(s));
       const mappedSampleKey = mappedSample.join(',');
       globalSamples.set(
         mappedSampleKey,
@@ -186,7 +186,7 @@ export function aggregateSpeedscopeData(data: string[]): any {
     }
   });
 
-  const globalSort = new Map<any, number>();
+  const globalSort = new Map<string, number>();
   globalSamples.forEach((weight, sample) => {
     const arr = sample.split(',').map(Number);
     for (let i = 0; i < arr.length; i++) {
@@ -195,7 +195,7 @@ export function aggregateSpeedscopeData(data: string[]): any {
     }
   });
 
-  const globalSortTuples = new Map<any, number[]>();
+  const globalSortTuples = new Map<string, number[]>();
 
   for (const sample of globalSamples.keys()) {
     const arr = sample.split(',').map(Number);
@@ -218,11 +218,11 @@ export function aggregateSpeedscopeData(data: string[]): any {
     return ta.length - tb.length;
   });
 
-  json!.profiles[0].samples = tuples.map(([key]) => key.split(',').map(Number));
-  json!.profiles[0].weights = tuples.map(([_, weight]) => weight);
+  json!.profiles[0]!.samples = tuples.map(([key]) => key.split(',').map(Number));
+  json!.profiles[0]!.weights = tuples.map(([, weight]) => weight);
   json!.shared.frames = globalFramesRev;
 
-  return json;
+  return json!;
 }
 
 export async function insertAggregatedProfile(

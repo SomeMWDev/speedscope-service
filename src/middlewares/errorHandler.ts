@@ -10,11 +10,10 @@ export const errorHandler = (
   err: AppError,
   req: Request,
   res: Response,
-  next: NextFunction,
 ) => {
   console.error(err);
   const showMessage = config.nodeEnv === 'development';
-  res.status(err.status || 500).json({
+  return res.status(err.status || 500).json({
     message: showMessage
       ? err.message || 'Internal Server Error'
       : 'Internal Server Error',
