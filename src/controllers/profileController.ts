@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from 'express';
-import type { Profile } from '../models/profile.js';
+import type {AggregatedProfileType, Profile} from '../models/profile.js';
 import {
   getLastAggregatedProfile,
   getProfileById,
@@ -74,13 +74,8 @@ export const getProfile = async (
 ) => {
   try {
     const { id } = req.query;
-    if (!id || typeof id !== 'string') {
-      return res
-        .status(400)
-        .json({ error: 'Profile ID is required and must be a string' });
-    }
 
-    const profile = await getProfileById(id);
+    const profile = await getProfileById(<string>id);
     if (!profile) {
       return res.status(404).json({ error: 'Profile not found' });
     }
@@ -98,10 +93,7 @@ export const aggregate = async (
 ) => {
   try {
     const { type } = req.query;
-    if (type !== 'hourly' && type !== 'daily') {
-      return res.status(400).json({ error: 'Invalid aggregation type' });
-    }
-    const aggregatedProfile = await getLastAggregatedProfile(type);
+    const aggregatedProfile = await getLastAggregatedProfile(<AggregatedProfileType>type);
     if (!aggregatedProfile) {
       return res.status(404).json({ error: 'No aggregated profiles found' });
     }
