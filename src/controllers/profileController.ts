@@ -1,0 +1,112 @@
+import type { NextFunction, Request, Response } from 'express';
+import type { Profile } from '../models/profile.js';
+import {
+  getLastAggregatedProfile,
+  getProfileById,
+  insertProfile,
+  profileExists,
+} from '../repositories/profileRepository.js';
+import config from '../config/config.js';
+import { timingSafeEqual } from 'node:crypto';
+
+function isAuthenticated(req: Request): boolean {
+  const auth = req.headers.authorization;
+  const expected = `Bearer ${config.logToken}`;
+  if (!auth) return false;
+  const authBuffer = Buffer.from(auth);
+  const expectedBuffer = Buffer.from(expected);
+  if (authBuffer.length !== expectedBuffer.length) return false;
+  return timingSafeEqual(authBuffer, expectedBuffer);
+}
+
+export const logProfile = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    if (!isAuthenticated(req)) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    const {
+      id,
+      wiki,
+      url,
+      cfRay,
+      forced,
+      speedscopeData,
+      parserReport,
+      environment,
+    } = req.body;
+    // TODO properly validate params
+
+    const exists = await profileExists(id);
+    if (exists) {
+      return res
+        .status(409)
+        .json({ error: 'Profile with this ID already exists' });
+    }
+
+    const newProfile: Profile = {
+      id,
+      wiki,
+      url,
+      cfRay,
+      forced,
+      speedscopeData,
+      parserReport,
+      timestamp: Date.now(),
+      environment,
+    };
+
+    await insertProfile(newProfile);
+    res.status(201).json(newProfile);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getProfile = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { id } = req.query;
+    if (!id || typeof id !== 'string') {
+      return res
+        .status(400)
+        .json({ error: 'Profile ID is required and must be a string' });
+    }
+
+    const profile = await getProfileById(id);
+    if (!profile) {
+      return res.status(404).json({ error: 'Profile not found' });
+    }
+
+    res.status(200).json(profile.speedscopeData);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const aggregate = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { type } = req.query;
+    if (type !== 'hourly' && type !== 'daily') {
+      return res.status(400).json({ error: 'Invalid aggregation type' });
+    }
+    const aggregatedProfile = await getLastAggregatedProfile(type);
+    if (!aggregatedProfile) {
+      return res.status(404).json({ error: 'No aggregated profiles found' });
+    }
+    res.status(200).json(aggregatedProfile.speedscopeData);
+  } catch (error) {
+    next(error);
+  }
+};
