@@ -1,5 +1,5 @@
 import {
-  aggregateProfiles,
+  aggregateSpeedscopeData,
   deleteProfilesInTimeRange,
   getProfilesInTimeRange,
   insertAggregatedProfile,
@@ -15,7 +15,9 @@ if (profiles.length === 0) {
   process.exit(0);
 }
 
-const aggregatedData = aggregateProfiles(profiles);
+const aggregatedData = aggregateSpeedscopeData(
+    profiles.map((p) => p.speedscopeData)
+);
 await insertAggregatedProfile(
   start,
   end,

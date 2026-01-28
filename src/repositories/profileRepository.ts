@@ -148,11 +148,11 @@ export async function deleteProfilesInTimeRange(
 }
 
 /**
- * @param profiles Array of profiles to aggregate. Must contain at least one profile.
+ * @param data Array of speedscope data to aggregate. Must contain at least one entry.
  */
-export function aggregateProfiles(profiles: Profile[]): any {
-  if (profiles.length === 0) {
-    throw new Error('No profiles to aggregate!');
+export function aggregateSpeedscopeData(data: string[]): any {
+  if (data.length === 0) {
+    throw new Error('No data to aggregate!');
   }
 
   const globalFrames = new Map<string, number>();
@@ -160,8 +160,8 @@ export function aggregateProfiles(profiles: Profile[]): any {
   const globalSamples = new Map<string, number>();
   let json = undefined;
 
-  profiles.forEach((profile) => {
-    json = JSON.parse(profile.speedscopeData);
+  data.forEach((rawData) => {
+    json = JSON.parse(rawData);
     const frames: any[] = json.shared.frames;
     const local2GlobalFrames = new Map<number, number>();
     frames.forEach((frame, i) => {
@@ -327,4 +327,22 @@ export async function getAggregatedProfilesInTimeRange(
     profileCount: row.profile_count,
     speedscopeData: gunzipSync(row.speedscope_data).toString(),
   }));
+}
+
+export async function deleteAggregatedProfilesInTimeRange(
+  startTime: number,
+  endTime: number,
+  type: AggregatedProfileType,
+): Promise<void> {
+  const db = await getDb();
+  await db.run(
+    `
+      DELETE FROM aggregated_profiles
+      WHERE start_time >= ? AND end_time <= ?
+      AND type = ?
+      `,
+    startTime,
+    endTime,
+    type,
+  );
 }
