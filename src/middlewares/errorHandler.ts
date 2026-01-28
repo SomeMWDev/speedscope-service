@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from 'express';
-import config from '../config/config';
+import config from '../config/config.js';
 import { validationResult } from 'express-validator';
 
 export interface AppError extends Error {

@@ -2,3 +2,7 @@ node_modules/
 db/database.db
 .idea/
 .github
+.env
+.env.example
+generated/
+dist/

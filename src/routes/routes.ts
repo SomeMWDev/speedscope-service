@@ -3,12 +3,12 @@ import {
   aggregate,
   getProfile,
   logProfile,
-} from '../controllers/profileController';
+} from '../controllers/profileController.js';
 import {body, query} from 'express-validator';
-import { handleValidationErrors } from '../middlewares/errorHandler';
+import { handleValidationErrors } from '../middlewares/errorHandler.js';
 import cors from 'cors';
-import config from "../config/config";
-import {AggregatedProfileType} from "../../generated/prisma/enums";
+import config from "../config/config.js";
+import {AggregatedProfileType} from "../../generated/prisma/enums.js";
 
 const router = Router();
 

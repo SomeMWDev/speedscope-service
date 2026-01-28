@@ -1,8 +1,8 @@
 import type { NextFunction, Request, Response } from 'express';
-import config from '../config/config';
+import config from '../config/config.js';
 import { timingSafeEqual } from 'node:crypto';
-import type {AggregatedProfileType, Profile} from "../../generated/prisma/client";
-import {prisma} from "../prisma";
+import type {AggregatedProfileType, Profile} from "../../generated/prisma/client.js";
+import {prisma} from "../prisma.js";
 import {gunzipSync, gzipSync} from "node:zlib";
 
 function isAuthenticated(req: Request): boolean {

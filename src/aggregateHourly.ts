@@ -1,7 +1,7 @@
 import {aggregateSpeedscopeData} from './repositories/profileRepository.js';
-import {prisma} from "./prisma";
+import {prisma} from "./prisma.js";
 import {gunzipSync, gzipSync} from "node:zlib";
-import {AggregatedProfileType, Profile} from "../generated/prisma/client";
+import {AggregatedProfileType, Profile} from "../generated/prisma/client.js";
 
 const end = new Date();
 const start = new Date(end.getTime() - (60 * 60 * 1000)); // 1 hour ago

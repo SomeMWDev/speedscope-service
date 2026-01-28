@@ -1,6 +1,6 @@
 import type {
   SpeedscopeFile, SpeedscopeFrame,
-} from '../models/speedscope';
+} from '../models/speedscope.js';
 
 /**
  * @param data Array of speedscope data to aggregate. Must contain at least one entry.
