@@ -3,11 +3,12 @@ import {
   aggregate,
   getProfile,
   logProfile,
-} from '../controllers/profileController.ts';
+} from '../controllers/profileController';
 import {body, query} from 'express-validator';
-import { handleValidationErrors } from '../middlewares/errorHandler.ts';
+import { handleValidationErrors } from '../middlewares/errorHandler';
 import cors from 'cors';
-import config from "../config/config.ts";
+import config from "../config/config";
+import {AggregatedProfileType} from "../../generated/prisma/enums";
 
 const router = Router();
 
@@ -39,7 +40,7 @@ router.get(
       origin: config.allowedOrigin,
     }),
     [
-      query('type').exists().isIn(['hourly', 'daily'])
+      query('type').exists().isIn([AggregatedProfileType.HOURLY, AggregatedProfileType.DAILY])
     ],
     handleValidationErrors,
     aggregate

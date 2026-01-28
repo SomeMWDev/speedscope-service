@@ -144,3 +144,8 @@ vite.config.ts.timestamp-*
 
 # IntelliJ IDEA
 .idea/
+
+/generated/prisma
+
+
+*.db

@@ -1,13 +1,9 @@
 import type { NextFunction, Request, Response } from 'express';
-import type {AggregatedProfileType, Profile} from '../models/profile.ts';
-import {
-  getLastAggregatedProfile,
-  getProfileById,
-  insertProfile,
-  profileExists,
-} from '../repositories/profileRepository.ts';
-import config from '../config/config.ts';
+import config from '../config/config';
 import { timingSafeEqual } from 'node:crypto';
+import type {AggregatedProfileType, Profile} from "../../generated/prisma/client";
+import {prisma} from "../prisma";
+import {gunzipSync, gzipSync} from "node:zlib";
 
 function isAuthenticated(req: Request): boolean {
   const auth = req.headers.authorization;
@@ -39,29 +35,32 @@ export const logProfile = async (
       parserReport,
       environment,
     } = req.body;
-    // TODO properly validate params
 
-    const exists = await profileExists(id);
+    const exists = await prisma.profile.findUnique({
+      where: { id }
+    });
     if (exists) {
       return res
         .status(409)
         .json({ error: 'Profile with this ID already exists' });
     }
 
-    const newProfile: Profile = {
-      id,
-      wiki,
-      url,
-      cfRay,
-      forced,
-      speedscopeData,
-      parserReport,
-      timestamp: Date.now(),
-      environment,
-    };
+    const newProfile = await prisma.profile.create({
+      data: {
+        id,
+        wiki,
+        url,
+        cfRay,
+        forced: Boolean(forced),
+        speedscopeData: gzipSync(speedscopeData),
+        parserReport: parserReport,
+        environment: environment,
+      },
+    }) as Profile;
 
-    await insertProfile(newProfile);
-    res.status(201).json(newProfile);
+    res.status(201).json({
+      id: newProfile.id,
+    });
   } catch (error) {
     next(error);
   }
@@ -75,12 +74,15 @@ export const getProfile = async (
   try {
     const { id } = req.query;
 
-    const profile = await getProfileById(id as string);
+    const profile = await prisma.profile.findUnique({
+      where: { id: id as string }
+    }) as Profile | null;
     if (!profile) {
       return res.status(404).json({ error: 'Profile not found' });
     }
 
-    res.status(200).json(JSON.parse(profile.speedscopeData));
+    const data = gunzipSync(profile.speedscopeData).toString();
+    res.status(200).json(JSON.parse(data));
   } catch (error) {
     next(error);
   }
@@ -93,11 +95,17 @@ export const aggregate = async (
 ) => {
   try {
     const { type } = req.query;
-    const aggregatedProfile = await getLastAggregatedProfile(type as AggregatedProfileType);
+
+    const aggregatedProfile = await prisma.aggregatedProfile.findFirst({
+      where: { type: type as AggregatedProfileType },
+      orderBy: { endTime: 'desc' },
+    });
     if (!aggregatedProfile) {
       return res.status(404).json({ error: 'No aggregated profiles found' });
     }
-    res.status(200).json(JSON.parse(aggregatedProfile.speedscopeData));
+
+    const data = gunzipSync(aggregatedProfile.speedscopeData).toString();
+    res.status(200).json(JSON.parse(data));
   } catch (error) {
     next(error);
   }

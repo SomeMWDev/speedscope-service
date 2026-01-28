@@ -1,32 +1,51 @@
-import {
-  aggregateSpeedscopeData, deleteAggregatedProfilesInTimeRange,
-  getAggregatedProfilesInTimeRange, insertAggregatedProfile
-} from "./repositories/profileRepository.ts";
+import {aggregateSpeedscopeData} from "./repositories/profileRepository";
+import {AggregatedProfileType} from "../generated/prisma/enums";
+import {gunzipSync, gzipSync} from "node:zlib";
+import {prisma} from "./prisma";
+import {AggregatedProfile} from "../generated/prisma/client";
 
-const end = Date.now();
-const start = end - 24 * 60 * 60 * 1000; // 1 day ago
+const end = new Date();
+const start = new Date(end.getTime() - (24 * 60 * 60 * 1000)); // 1 day ago
 
-const aggregatedProfiles = await getAggregatedProfilesInTimeRange(
-    start,
-    end,
-    'hourly'
-);
+const aggregatedProfiles: AggregatedProfile[] = await prisma.aggregatedProfile.findMany({
+  where: {
+    startTime: {
+      gte: start,
+    },
+    type: AggregatedProfileType.HOURLY,
+  },
+  orderBy: {
+    startTime: 'asc',
+  },
+});
 
-if (aggregatedProfiles.length === 0) {
+if (!aggregatedProfiles || aggregatedProfiles.length === 0) {
   console.log('No profiles found in the last day.');
   process.exit(0);
 }
 
 const aggregatedData = aggregateSpeedscopeData(
-    aggregatedProfiles.map((p) => p.speedscopeData)
+    aggregatedProfiles.map((p) => {
+      return gunzipSync(p.speedscopeData).toString();
+    })
 );
-await insertAggregatedProfile(
-    start,
-    end,
-    'daily',
-    aggregatedProfiles.map((p) => p.profileCount)
+await prisma.aggregatedProfile.create({
+  data: {
+    startTime: start,
+    endTime: end,
+    type: AggregatedProfileType.DAILY,
+    profileCount: aggregatedProfiles
+      .map((p) => p.profileCount)
       .reduce((a, b) => a + b, 0),
-    JSON.stringify(aggregatedData),
-);
+    speedscopeData: gzipSync(JSON.stringify(aggregatedData)),
+  }
+});
 
-await deleteAggregatedProfilesInTimeRange(0, end, 'hourly');
+await prisma.aggregatedProfile.deleteMany({
+  where: {
+    endTime: {
+      lte: end,
+    },
+    type: AggregatedProfileType.HOURLY,
+  },
+});
