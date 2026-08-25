@@ -136,8 +136,14 @@ export const getProfileMetadata = async (
       return res.status(404).json({ error: 'Profile not found' });
     }
 
+    // Strip location from ray ID
+    const cfRay = profile.cfRay.includes('-')
+      ? profile.cfRay.slice(0, profile.cfRay.lastIndexOf('-'))
+      : profile.cfRay;
+
     res.status(200).json({
       ...profile,
+      cfRay: cfRay,
       parserReport: profile.parserReport ? JSON.parse(profile.parserReport) : null,
     });
   } catch (error) {
